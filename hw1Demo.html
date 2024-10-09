@@ -12,14 +12,14 @@
             margin: 0;
             padding: 20px;
         }
-        
+
         #controls {
             margin-bottom: 20px;
         }
 
         #line_chart, #histogram {
-            width: 70%; /* Adjust the width to make it smaller */
-            height: 300px; /* Reduced height to make it more compact */
+            width: 50%; /* Reduced width to make it smaller */
+            height: 250px; /* Reduced height */
             margin: 0 auto; /* Centers the graphs */
             margin-bottom: 30px;
         }
@@ -113,7 +113,7 @@
                 xaxis: { title: 'Frequency', dtick: 1 },
                 yaxis: { title: 'Penetrations', dtick: 1 } // y-axis has 1 interval ticks for penetrations
             });
-        
+
             // Calculate mean, median, and mode
             var mean = calculateMean(violations);
             var median = calculateMedian(violations);
