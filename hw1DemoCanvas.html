@@ -13,8 +13,8 @@
 
         .chart-container {
             display: inline-block;
-            width: 600px;
-            height: 350px;
+            width: 500px;
+            height: 300px;
             border: 1px solid #ddd;
             margin-bottom: 20px;
             position: relative;
@@ -124,7 +124,7 @@
                 attacker_penetrations.push({ x: x_values, y: y_values });
 
                 // Draw step-like vertical lines
-                drawStepLine(lineCtx, x_values, y_values, i);
+                drawStepLine(lineCtx, x_values, y_values, i, num_servers, Math.max(...y_values));
             }
 
             // Draw histogram
@@ -148,21 +148,19 @@
         }
 
         // Draw step-like lines for the penetration chart
-        function drawStepLine(ctx, x_values, y_values, index) {
+        function drawStepLine(ctx, x_values, y_values, index, maxX, maxY) {
             var width = ctx.canvas.width;
             var height = ctx.canvas.height;
-            var maxServers = Math.max(...x_values);
-            var maxPenetrations = Math.max(...y_values);
 
             ctx.beginPath();
             ctx.strokeStyle = `hsl(${index * 60}, 100%, 50%)`;
             ctx.lineWidth = 2;
 
             for (var i = 0; i < x_values.length - 1; i++) {
-                var x1 = (x_values[i] / maxServers) * width;
-                var y1 = height - (y_values[i] / maxPenetrations) * height;
-                var x2 = (x_values[i + 1] / maxServers) * width;
-                var y2 = height - (y_values[i + 1] / maxPenetrations) * height;
+                var x1 = (x_values[i] / maxX) * width;
+                var y1 = height - (y_values[i] / maxY) * height;
+                var x2 = (x_values[i + 1] / maxX) * width;
+                var y2 = height - (y_values[i + 1] / maxY) * height;
 
                 // Horizontal line
                 ctx.moveTo(x1, y1);
@@ -175,7 +173,7 @@
             }
             ctx.stroke();
 
-            drawAxis(ctx, maxServers, maxPenetrations);
+            drawAxis(ctx, maxX, maxY);
         }
 
         // Draw histogram for penetration counts
