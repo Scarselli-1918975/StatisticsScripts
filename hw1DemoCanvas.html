@@ -14,7 +14,7 @@
         .chart-container {
             display: inline-block;
             width: 600px;
-            height: 300px;
+            height: 350px;
             border: 1px solid #ddd;
             margin-bottom: 20px;
             position: relative;
@@ -35,6 +35,24 @@
 
         label {
             margin-right: 10px;
+        }
+
+        .axis-label {
+            font-size: 12px;
+            font-weight: bold;
+            position: absolute;
+        }
+
+        .y-axis-label {
+            top: 50%;
+            left: 10px;
+            transform: translate(-50%, -50%) rotate(-90deg);
+        }
+
+        .x-axis-label {
+            bottom: 10px;
+            left: 50%;
+            transform: translate(-50%);
         }
     </style>
 </head>
@@ -57,9 +75,14 @@
 
     <div class="chart-container">
         <canvas id="line_chart"></canvas>
+        <div class="axis-label y-axis-label">Penetrations</div>
+        <div class="axis-label x-axis-label">Servers</div>
     </div>
+
     <div class="chart-container">
         <canvas id="histogram"></canvas>
+        <div class="axis-label y-axis-label">Penetrations</div>
+        <div class="axis-label x-axis-label">Frequency</div>
     </div>
 
     <div id="statistics"></div>
@@ -100,8 +123,8 @@
 
                 attacker_penetrations.push({ x: x_values, y: y_values });
 
-                // Draw lines
-                drawLine(lineCtx, x_values, y_values, i);
+                // Draw step-like vertical lines
+                drawStepLine(lineCtx, x_values, y_values, i);
             }
 
             // Draw histogram
@@ -124,7 +147,8 @@
             `;
         }
 
-        function drawLine(ctx, x_values, y_values, index) {
+        // Draw step-like lines for the penetration chart
+        function drawStepLine(ctx, x_values, y_values, index) {
             var width = ctx.canvas.width;
             var height = ctx.canvas.height;
             var maxServers = Math.max(...x_values);
@@ -134,20 +158,27 @@
             ctx.strokeStyle = `hsl(${index * 60}, 100%, 50%)`;
             ctx.lineWidth = 2;
 
-            for (var i = 0; i < x_values.length; i++) {
-                var x = (x_values[i] / maxServers) * width;
-                var y = height - (y_values[i] / maxPenetrations) * height;
+            for (var i = 0; i < x_values.length - 1; i++) {
+                var x1 = (x_values[i] / maxServers) * width;
+                var y1 = height - (y_values[i] / maxPenetrations) * height;
+                var x2 = (x_values[i + 1] / maxServers) * width;
+                var y2 = height - (y_values[i + 1] / maxPenetrations) * height;
 
-                if (i === 0) {
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
+                // Horizontal line
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y1);
+
+                // Vertical step line
+                if (y1 !== y2) {
+                    ctx.lineTo(x2, y2);
                 }
             }
-
             ctx.stroke();
+
+            drawAxis(ctx, maxServers, maxPenetrations);
         }
 
+        // Draw histogram for penetration counts
         function drawHistogram(ctx, penetration_counts, num_servers) {
             var width = ctx.canvas.width;
             var height = ctx.canvas.height;
@@ -160,8 +191,48 @@
                 ctx.fillStyle = "blue";
                 ctx.fillRect(i * barWidth, height - barHeight, barWidth - 2, barHeight);
             }
+
+            drawAxis(ctx, num_servers, maxCount);
         }
 
+        // Helper to draw axis, labels, and ticks
+        function drawAxis(ctx, maxX, maxY) {
+            var width = ctx.canvas.width;
+            var height = ctx.canvas.height;
+
+            ctx.strokeStyle = "#000";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+
+            // X axis (horizontal)
+            ctx.moveTo(0, height);
+            ctx.lineTo(width, height);
+            // Y axis (vertical)
+            ctx.moveTo(0, 0);
+            ctx.lineTo(0, height);
+
+            ctx.stroke();
+
+            // Draw ticks and labels on x-axis
+            for (var i = 0; i <= maxX; i++) {
+                var x = (i / maxX) * width;
+                ctx.moveTo(x, height);
+                ctx.lineTo(x, height - 5); // Tick mark
+                ctx.stroke();
+                ctx.fillText(i, x, height + 10); // Labels
+            }
+
+            // Draw ticks and labels on y-axis
+            for (var i = 0; i <= maxY; i++) {
+                var y = height - (i / maxY) * height;
+                ctx.moveTo(0, y);
+                ctx.lineTo(5, y); // Tick mark
+                ctx.stroke();
+                ctx.fillText(i, -15, y + 5); // Labels
+            }
+        }
+
+        // Helper functions for statistics
         function calculateMean(arr) {
             var sum = arr.reduce((a, b) => a + b, 0);
             return sum / arr.length;
