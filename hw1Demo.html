@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Penetration Simulation</title>
+    <title>Attack Simulation</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
         body {
@@ -18,8 +18,8 @@
         }
 
         #line_chart, #histogram {
-            width: 75%; /* Reduced width to make it smaller */
-            height: 350pt; /* Reduced height */
+            width: 75%; 
+            height: 350pt; 
             margin: 0 auto; /* Centers the graphs */
             margin-bottom: 30px;
         }
@@ -31,11 +31,12 @@
 </head>
 <body>
 
-    <h1>Penetration Simulation</h1>
+    <h1>Attack Simulation</h1>
 
     <div id="controls">
         <label for="probability">Probability:</label>
-        <input type="range" id="probability" min="0" max="1" step="0.01" value="0.2" oninput="document.getElementById('probValue').innerHTML = this.value;">
+        <input type="range" id="probability" min="0" max="1" step="0.01" value="0.2" 
+            oninput="document.getElementById('probValue').innerHTML = this.value;">
         <span id="probValue">0.2</span>
 
         <label for="num_attackers">Attackers:</label>
