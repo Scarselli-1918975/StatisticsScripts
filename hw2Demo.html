@@ -7,35 +7,38 @@
     <style>
         body { text-align: center; }
         canvas { border: 1px solid black; margin-top: 20px; }
+        #controls { margin-bottom: 20px; }
     </style>
 </head>
 <body>
     <h1>Server Attack Simulation</h1>
     
-    <div>
+    <div id="controls">
         <label for="numServers">Number of Servers (n):</label>
         <input id="numServers" type="number" value="10">
-    </div>
-    <div>
+        <br>
         <label for="numAttackers">Number of Attackers (m):</label>
         <input id="numAttackers" type="number" value="50">
-    </div>
-    <div>
+        <br>
         <label for="probability">Probability of Penetration (p):</label>
-        <input id="probability" type="text" value="0.6">
-    </div>
-    <div>
+        <input id="probability" type="range" min="0" max="1" step="0.01" value="0.6" oninput="updateProbabilityDisplay()">
+        <span id="probabilityValue">0.6</span>
+        <br>
         <label for="timeStep">Intermediate Distribution at Time Step (t*):</label>
         <input id="timeStep" type="number" value="25">
+        <br>
+        <button onclick="runSimulation()">Run Simulation</button>
     </div>
-    
-    <button onclick="runSimulation()">Run Simulation</button>
 
     <canvas id="simulationCanvas" width="800" height="400"></canvas>
 
     <script>
         const canvas = document.getElementById('simulationCanvas');
         const ctx = canvas.getContext('2d');
+        
+        function updateProbabilityDisplay() {
+            document.getElementById('probabilityValue').innerText = document.getElementById('probability').value;
+        }
 
         function runSimulation() {
             const numServers = parseInt(document.getElementById('numServers').value);
@@ -44,9 +47,11 @@
             const timeStep = parseInt(document.getElementById('timeStep').value);
 
             const steps = 10;  // Total time steps
-            const stepSize = 40;  // Size of each step on the canvas
+            const stepSize = 30;  // Size of each step on the canvas
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);  // Clear canvas before drawing
+
+            drawAxes();
 
             // Simulate attack trajectories for each attacker
             for (let attacker = 0; attacker < numAttackers; attacker++) {
@@ -56,31 +61,66 @@
 
         function drawTrajectory(attacker, steps, stepSize, probability, numServers) {
             let x = 50;  // Initial x-coordinate
-            let y = 200;  // Start vertically centered
+            let y = canvas.height / 2;  // Start vertically centered
 
             ctx.beginPath();
             ctx.moveTo(x, y);
 
             for (let step = 0; step < steps; step++) {
-                // Random movement based on the probability
+                // First, move vertically by either +1 or -1 step
                 let verticalStep = (Math.random() < probability) ? -stepSize : stepSize;
                 
-                // Move vertically by either +1 or -1 step
+                // Move vertically
                 y += verticalStep;
 
                 // Ensure we do not go out of bounds for y (between 0 and canvas height)
                 if (y < 0) y = 0;
                 if (y > canvas.height) y = canvas.height;
 
-                // Move horizontally to the next step
+                // Draw vertical step
+                ctx.lineTo(x, y);
+                ctx.stroke();
+
+                // Then, move horizontally to the next step
                 x += stepSize;
 
-                // Draw the step to the next point
+                // Draw horizontal step (keeping y the same)
                 ctx.lineTo(x, y);
+                ctx.stroke();
             }
 
             ctx.strokeStyle = getRandomColor();
             ctx.stroke();
+        }
+
+        // Draw X and Y axes
+        function drawAxes() {
+            const margin = 50;
+            const axisColor = "#000000";
+            const axisWidth = 2;
+            ctx.strokeStyle = axisColor;
+            ctx.lineWidth = axisWidth;
+
+            // Draw Y-axis
+            ctx.beginPath();
+            ctx.moveTo(margin, 0);
+            ctx.lineTo(margin, canvas.height);
+            ctx.stroke();
+
+            // Draw X-axis
+            ctx.beginPath();
+            ctx.moveTo(margin, canvas.height / 2);
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.stroke();
+
+            // Reset stroke style and line width
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = "#000000";
+
+            // Add labels
+            ctx.font = "12px Arial";
+            ctx.fillText("Time Steps", canvas.width - 60, canvas.height / 2 + 20);
+            ctx.fillText("Penetrations", 10, 30);
         }
 
         // Helper function to generate random colors for each attacker line
