@@ -1,196 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <title>Euler-Maruyama SDE Simulator with Variants</title>
-  <style>
-    body * {
-      font-family: verdana, sans-serif;
-      font-size: 13px;
-    }
-
-    h3 {
-      font-weight: bold;
-      color: maroon;
-    }
-
-    label {
-      font-weight: bold;
-      color: darkblue;
-      display: inline-block;
-    }
-
-    input[type="number"],
-    input[type="radio"] {
-      margin-right: 20px;
-    }
-
-    canvas {
-      background-color: black;
-      border: 1px solid blue;
-      float: left;
-    }
-
-    div {
-      background-color: whitesmoke;
-      display: inline-block;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Attack Simulation</title>
+    <style>
+        body { text-align: center; }
+        canvas { border: 1px solid black; margin-top: 20px; }
+    </style>
 </head>
-
 <body>
+    <h1>Server Attack Simulation</h1>
+    
+    <div>
+        <label for="numServers">Number of Servers (n):</label>
+        <input id="numServers" type="number" value="10">
+    </div>
+    <div>
+        <label for="numAttackers">Number of Attackers (m):</label>
+        <input id="numAttackers" type="number" value="50">
+    </div>
+    <div>
+        <label for="probability">Probability of Penetration (p):</label>
+        <input id="probability" type="text" value="0.6">
+    </div>
+    <div>
+        <label for="timeStep">Intermediate Distribution at Time Step (t*):</label>
+        <input id="timeStep" type="number" value="25">
+    </div>
+    
+    <button onclick="runSimulation()">Run Simulation</button>
 
-  <h3>Euler-Maruyama SDE Simulator with Variants</h3>
-  <div>
-    <label for="inputTimes"># times:</label>
-    <input type="number" id="inputTimes" value="1000" min="10" max="10000" step="10">
+    <canvas id="simulationCanvas" width="800" height="400"></canvas>
 
-    <label for="inputPaths"># sample paths:</label>
-    <input type="number" id="inputPaths" value="500" min="10" max="10000" step="10">
+    <script>
+        const canvas = document.getElementById('simulationCanvas');
+        const ctx = canvas.getContext('2d');
 
-    <label for="inputMu">μ (drift):</label>
-    <input type="number" id="inputMu" value="0" min="-20" max="20" step=".1">
+        function runSimulation() {
+            const numServers = parseInt(document.getElementById('numServers').value);
+            const numAttackers = parseInt(document.getElementById('numAttackers').value);
+            const probability = parseFloat(document.getElementById('probability').value);
+            const timeStep = parseInt(document.getElementById('timeStep').value);
 
-    <label for="inputSigma">σ (diffusion):</label>
-    <input type="number" id="inputSigma" value="1" min="0.1" max="1000" step=".1">
+            const steps = 10;  // Total time steps
+            const stepSize = 40;  // Size of each step on the canvas
 
-    <label for="inputLambda">λ (Poisson rate):</label>
-    <input type="number" id="inputLambda" value="50" min="1" max="1000" step="1">
+            ctx.clearRect(0, 0, canvas.width, canvas.height);  // Clear canvas before drawing
 
-    <label for="inputJumpProb">Jump probability (p):</label>
-    <input type="number" id="inputJumpProb" value="0.5" min="0" max="1" step="0.01">
-
-    <button id="buttonRecompute" type="button">Generate new</button>
-
-    <label>Animation:</label>
-    <input type="radio" id="check_ALL_AT_ONCE" name="gruppoAnimation"> All at once
-    <input type="radio" id="check_ANIMATED" name="gruppoAnimation" checked> Slow animation
-
-    <label>Process:</label>
-    <input type="radio" id="check_RANDOM_WALK" name="gruppo" checked> Random Walk
-    <input type="radio" id="check_BROWNIAN_MOTION_GEN" name="gruppo"> Brownian Motion (general)
-    <input type="radio" id="check_POISSON" name="gruppo"> Poisson
-
-    <label>Intermediate time step for distribution:</label>
-    <input type="number" id="inputIntermediateTime" value="500" min="1" max="1000" step="1">
-  </div>
-
-  <canvas id="myCanvas" width="900" height="600"></canvas>
-
-  <script>
-    "use strict";
-
-    // Enum to select the process type
-    const MyChosenVariate = Object.freeze({
-      RANDOM_WALK: Symbol("randomWalk"),
-      BROWNIAN_MOTION_GENERAL: Symbol("brownianMotion"),
-      POISSON: Symbol("Poisson"),
-    });
-
-    const buttonRecompute = document.getElementById("buttonRecompute");
-    const inputMu = document.getElementById("inputMu");
-    const inputSigma = document.getElementById("inputSigma");
-    const inputLambda = document.getElementById("inputLambda");
-    const inputTimes = document.getElementById("inputTimes");
-    const inputPaths = document.getElementById("inputPaths");
-    const inputJumpProb = document.getElementById("inputJumpProb");
-    const inputIntermediateTime = document.getElementById("inputIntermediateTime");
-
-    const check_ALL_AT_ONCE = document.getElementById("check_ALL_AT_ONCE");
-    const check_ANIMATED = document.getElementById("check_ANIMATED");
-
-    const check_RANDOM_WALK = document.getElementById("check_RANDOM_WALK");
-    const check_BROWNIAN_MOTION_GEN = document.getElementById("check_BROWNIAN_MOTION_GEN");
-    const check_POISSON = document.getElementById("check_POISSON");
-
-    const myCanvas = document.getElementById("myCanvas");
-    const ctx = myCanvas.getContext("2d");
-
-    let mu, sigma, lambda, p, n, numberOfSamplePaths, intermediateTime, allPaths;
-    let representAsAnimation, currentPathNumber;
-    let avgAtLastTime, ssAtLastTime;
-
-    buttonRecompute.onclick = mainTask;
-
-    mainTask();
-
-    function mainTask() {
-      clearCanvas();
-      acquireUserChoices();
-      generateSamplePaths();
-    }
-
-    function acquireUserChoices() {
-      mu = Number(inputMu.value);
-      sigma = Number(inputSigma.value);
-      lambda = Number(inputLambda.value);
-      p = Number(inputJumpProb.value);  // Probability of ±1 jumps for random walk
-      n = Math.round(Number(inputTimes.value));
-      numberOfSamplePaths = Number(inputPaths.value);
-      intermediateTime = Math.round(Number(inputIntermediateTime.value));
-      representAsAnimation = check_ANIMATED.checked;
-    }
-
-    function clearCanvas() {
-      ctx.clearRect(0, 0, myCanvas.width, myCanvas.height);
-    }
-
-    function generateSamplePaths() {
-      allPaths = [];
-
-      for (let i = 0; i < numberOfSamplePaths; i++) {
-        const path = createSinglePath();
-        allPaths.push(path);
-        drawPath(path, i === numberOfSamplePaths - 1);
-      }
-
-      displayDistributionAtTime(intermediateTime);
-    }
-
-    function createSinglePath() {
-      let path = new Path2D();
-      let sumOfJumps = 0;
-      let x = 0, y = 300;  // Start point
-
-      for (let t = 0; t < n; t++) {
-        if (check_RANDOM_WALK.checked) {
-          let jump = Math.random() < p ? 1 : -1;
-          sumOfJumps += jump;
-        } else if (check_BROWNIAN_MOTION_GEN.checked) {
-          sumOfJumps += gaussianRandom(mu, sigma);
-        } else if (check_POISSON.checked) {
-          sumOfJumps += Math.random() < (lambda / n) ? 1 : 0;
+            // Simulate attack trajectories for each attacker
+            for (let attacker = 0; attacker < numAttackers; attacker++) {
+                drawTrajectory(attacker, steps, stepSize, probability, numServers);
+            }
         }
 
-        let newX = (t / n) * 900; // Map to canvas width
-        let newY = 300 - sumOfJumps; // Inverted Y-axis for visualization
+        function drawTrajectory(attacker, steps, stepSize, probability, numServers) {
+            let x = 50;  // Initial x-coordinate
+            let y = 200;  // Start vertically centered
 
-        path.lineTo(newX, newY);
-      }
+            ctx.beginPath();
+            ctx.moveTo(x, y);
 
-      return path;
-    }
+            for (let step = 0; step < steps; step++) {
+                // Random movement based on the probability
+                let verticalStep = (Math.random() < probability) ? -stepSize : stepSize;
+                
+                // Move vertically by either +1 or -1 step
+                y += verticalStep;
 
-    function drawPath(path, highlight) {
-      ctx.strokeStyle = highlight ? 'red' : 'white';
-      ctx.stroke(path);
-    }
+                // Ensure we do not go out of bounds for y (between 0 and canvas height)
+                if (y < 0) y = 0;
+                if (y > canvas.height) y = canvas.height;
 
-    function displayDistributionAtTime(time) {
-      // Calculate and display histogram and distribution for the time
-      // Calculate mean and variance for the final time step
-    }
+                // Move horizontally to the next step
+                x += stepSize;
 
-    function gaussianRandom(mean, stdDev) {
-      let u1 = Math.random();
-      let u2 = Math.random();
-      let z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
-      return z0 * stdDev + mean;
-    }
+                // Draw the step to the next point
+                ctx.lineTo(x, y);
+            }
 
-  </script>
+            ctx.strokeStyle = getRandomColor();
+            ctx.stroke();
+        }
 
+        // Helper function to generate random colors for each attacker line
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+    </script>
 </body>
-
 </html>
