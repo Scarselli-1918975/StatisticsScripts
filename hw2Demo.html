@@ -37,12 +37,12 @@
     <!-- Distribution graphs -->
     <div id="graphs">
         <div>
-            <h3>Final Distribution</h3>
-            <canvas id="finalDistributionCanvas" width="600" height="800"></canvas>
-        </div>
-        <div>
             <h3>Intermediate Distribution (t*)</h3>
             <canvas id="intermediateDistributionCanvas" width="600" height="800"></canvas>
+        </div>
+        <div>
+            <h3>Final Distribution</h3>
+            <canvas id="finalDistributionCanvas" width="600" height="800"></canvas>
         </div>
         <div>
             <h3>Frequencies Trajectories</h3>
@@ -216,7 +216,7 @@
                 cumulativeFreq = cumulativeFreq.map(f => f / maxFreq);  // Normalize the cumulative frequencies
             }
 
-            // Draw smoothed graph for the cumulative frequencies
+            // Draw graph for the cumulative frequencies
             const stepSizeX = (ctx.canvas.width - margin * 2) / steps;
             const stepSizeY = (ctx.canvas.height - margin * 2) / maxFreq;
 
