@@ -37,12 +37,12 @@
     <!-- Distribution graphs -->
     <div id="graphs">
         <div>
-            <h3>Intermediate Distribution (t*)</h3>
-            <canvas id="intermediateDistributionCanvas" width="600" height="800"></canvas>
-        </div>
-        <div>
             <h3>Final Distribution</h3>
             <canvas id="finalDistributionCanvas" width="600" height="800"></canvas>
+        </div>
+        <div>
+            <h3>Intermediate Distribution (t*)</h3>
+            <canvas id="intermediateDistributionCanvas" width="600" height="800"></canvas>
         </div>
         <div>
             <h3>Frequencies Trajectories</h3>
@@ -159,12 +159,12 @@
 
             // Display the results
             const statsElement = document.getElementById('statistics');
-            statsElement.innerHTML = 
+            statsElement.innerHTML = `
                 <strong>Intermediate Step (t* = ${selectedStep}):</strong><br>
                 Mean = ${intermediateStats.mean.toFixed(2)}, Variance = ${intermediateStats.variance.toFixed(2)}<br><br>
                 <strong>Final Step:</strong><br>
                 Mean = ${finalStats.mean.toFixed(2)}, Variance = ${finalStats.variance.toFixed(2)}
-            ;
+            `;
         }
 
         // Function to compute mean and variance from distribution
@@ -216,7 +216,7 @@
                 cumulativeFreq = cumulativeFreq.map(f => f / maxFreq);  // Normalize the cumulative frequencies
             }
 
-            // Draw graph for the cumulative frequencies
+            // Draw smoothed graph for the cumulative frequencies
             const stepSizeX = (ctx.canvas.width - margin * 2) / steps;
             const stepSizeY = (ctx.canvas.height - margin * 2) / maxFreq;
 
