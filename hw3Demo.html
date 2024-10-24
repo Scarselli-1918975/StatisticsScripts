@@ -116,7 +116,7 @@
             // Calculate intermediate distribution at selected step
             let selectedStep = Math.min(timeStep, steps);
             for (let attacker = 0; attacker < numAttackers; attacker++) {
-                let intermediateValue = trajectories[attacker][selectedStep]; // Shift to positive index
+                let intermediateValue = trajectories[attacker][selectedStep]; 
                 intermediateDistribution[intermediateValue]++;
             }
 
@@ -240,7 +240,7 @@
             // Draw Y-axis ticks and labels (Penetrations)
             const stepSizeY = (canvas.height - margin * 2) / (maxY - minY);
             for (let i = minY; i <= maxY; i++) {
-                if (i % 5 === 0) {  // Only draw ticks and labels for multiples of 5
+                if (i % 5 === 0) {  // Only draw ticks and labels for multiples of 5 to avoid crowding
                     let y = canvas.height - margin - (i * stepSizeY);
                     ctx.beginPath();
                     ctx.moveTo(margin - 5, y);
