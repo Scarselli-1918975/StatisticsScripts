@@ -41,11 +41,11 @@
     <div id="graphs">
         <div>
             <h3>Intermediate Distribution (t*)</h3>
-            <canvas id="intermediateDistributionCanvas" width="600" height="800"></canvas>
+            <canvas id="intermediateDistributionCanvas" width="600" height="300"></canvas>
         </div>
         <div>
             <h3>Final Distribution</h3>
-            <canvas id="finalDistributionCanvas" width="600" height="800"></canvas>
+            <canvas id="finalDistributionCanvas" width="600" height="300"></canvas>
         </div>
     </div>
 
@@ -70,21 +70,20 @@
             const lambda = parseFloat(document.getElementById('lambda').value);
             const timeStep = parseInt(document.getElementById('timeStep').value);
 
-            let finalDistribution = Array(numServers * 2 + 1).fill(0);
-            let intermediateDistribution = Array(numServers * 2 + 1).fill(0);
+            let finalDistribution = Array(numServers + 1).fill(0);
+            let intermediateDistribution = Array(numServers + 1).fill(0);
 
             const steps = numServers;  // Total time steps
-            const numLevels = numServers * 2 + 1;
+            const numLevels = numServers + 1;
 
             let trajectories = [];
-            let absoluteFrequencies = Array(steps + 1).fill(null).map(() => Array(numLevels).fill(0));
 
             // Clear canvases before drawing
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             finalCtx.clearRect(0, 0, finalCanvas.width, finalCanvas.height);
             intermediateCtx.clearRect(0, 0, intermediateCanvas.width, intermediateCanvas.height);
 
-            // Calculate max and min penetration values dynamically
+            // Calculate max penetration values dynamically
             let maxY = 0;  // We no longer have negative values
 
             // Simulate trajectories
@@ -95,16 +94,13 @@
                 for (let step = 1; step <= steps; step++) {
                     // Use lambda to simulate possible jumps in attack success, combined with p for attack direction
                     let change = (Math.random() < lambda / numServers) ? 1 : 0;  // Lambda controls attack jumps
-                    let verticalStep = (Math.random() < probability) ? change : -change; // Adjust direction by p
+                    let verticalStep = (Math.random() < probability) ? change : 0; // Adjust direction by p (0 means no change)
                     y += verticalStep;
-                    if (y < 0) y = 0;  // Ensure no negative penetration
+                    if (y > numServers) y = numServers;  // Cap penetration to max servers
                     trajectory.push(y);  // Store trajectory for the current step
 
                     // Update max penetration value
                     if (y > maxY) maxY = y;
-
-                    // Track absolute frequency at each step
-                    absoluteFrequencies[step][y]++;
                 }
 
                 trajectories.push(trajectory);
@@ -153,10 +149,7 @@
                 y = canvas.height - margin - (trajectory[step] * stepSizeY);  // Scale y based on trajectory value
 
                 ctx.lineTo(x, y);
-                ctx.stroke();
                 x += stepSizeX;
-                ctx.lineTo(x, y);
-                ctx.stroke();
             }
 
             ctx.strokeStyle = getRandomColor();
