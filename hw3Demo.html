@@ -25,7 +25,7 @@
         <input id="probability" type="range" min="0" max="1" step="0.01" value="0.5" oninput="updateProbabilityDisplay()">
         <span id="probabilityValue">0.5</span>
         <br>
-        <label for="lambda">Lambda (Expected Attacks per Time Unit):</label>
+        <label for="lambda">Lambda (Expected Attacks):</label>
         <input id="lambda" type="number" value="5" step="0.1">
         <br>
         <label for="timeStep">Intermediate Distribution at Time Step (t*):</label>
@@ -40,12 +40,12 @@
     <!-- Distribution graphs -->
     <div id="graphs">
         <div>
-            <h3>Intermediate Distribution (t*)</h3>
-            <canvas id="intermediateDistributionCanvas" width="600" height="800"></canvas>
-        </div>
-        <div>
             <h3>Final Distribution</h3>
             <canvas id="finalDistributionCanvas" width="600" height="800"></canvas>
+        </div>
+        <div>
+            <h3>Intermediate Distribution (t*)</h3>
+            <canvas id="intermediateDistributionCanvas" width="600" height="800"></canvas>
         </div>
 
     <script>
@@ -58,25 +58,28 @@
         const intermediateCanvas = document.getElementById('intermediateDistributionCanvas');
         const intermediateCtx = intermediateCanvas.getContext('2d');
 
-        const FrequencyCanvas = document.getElementById('FrequencyCanvas');
-        const FrequencyCtx = FrequencyCanvas.getContext('2d');
+        function updateProbabilityDisplay() {
+            document.getElementById('probabilityValue').innerText = document.getElementById('probability').value;
+        }
 
         function runSimulation() {
             const numServers = parseInt(document.getElementById('numServers').value);
             const numAttackers = parseInt(document.getElementById('numAttackers').value);
             const probability = parseFloat(document.getElementById('probability').value);
-            const lambda = parseFloat(document.getElementById('lambda').value);
+            const lambda = parseFloat(document.getElementById('lambda').value); // Get Lambda value
             const timeStep = parseInt(document.getElementById('timeStep').value);
 
             const n = 1000; // Number of subintervals to simulate continuous time
             const dt = 1 / n; // Small interval for time
-
+            
             let finalDistribution = Array(numServers * 2 + 1).fill(0);
             let intermediateDistribution = Array(numServers * 2 + 1).fill(0);
 
             const steps = numServers;  // Total time steps
             const numLevels = numServers * 2 + 1;
-            
+
+            let trajectories = [];
+
             // Clear canvases before drawing
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             finalCtx.clearRect(0, 0, finalCanvas.width, finalCanvas.height);
@@ -84,27 +87,24 @@
             FrequencyCtx.clearRect(0, 0, FrequencyCanvas.width, FrequencyCanvas.height);
 
             // Calculate max and min penetration values dynamically
-            let minY = 0, maxY = 0;
+            let minY = 0, maxY = 0; // Since there is no -1 this time, minY will remain 0 
 
             // Simulate trajectories
             for (let attacker = 0; attacker < numAttackers; attacker++) {
-                let y = 0;  // Start at 0 penetrations
-                let trajectory = [y];  // Start every attacker at zero at time step 0
+                let currentPenetration = 0;
+                let trajectory = [];  // Start every attacker at zero at time step 0
 
                 for (let step = 1; step <= steps; step++) {
                     // Subdivide each time step into small intervals
                     for (let subStep = 0; subStep < n; subStep++) {
-                        let verticalStep = (Math.random() < lambda * dt) ? 1 : 0; // Probability for attack increment
-                        y += verticalStep;  // Accumulate attack events
+                        let change = (Math.random() < lambda * dt) ? 1 : 0; // Probability for jump
+                        currentPenetration += change; // Accumulate attack events
                     }
-
-                    trajectory.push(y); // Store trajectory for the current step
+                    
+                    trajectory.push(currentPenetration); // Store trajectory for the current step
 
                     // Update min and max penetration values
-                    if (y > maxY) maxY = y;
-
-                    // Track absolute frequency at each step
-                    absoluteFrequencies[step][y + numServers]++;
+                    if (currentPenetration > maxY) maxY = currentPenetration;
                 }
 
                 trajectories.push(trajectory);
@@ -135,16 +135,9 @@
             drawHistogram(intermediateCtx, intermediateCanvas, intermediateDistribution, numServers, "red", selectedStep, minY, maxY);
             drawHistogram(finalCtx, finalCanvas, finalDistribution, numServers, "blue", steps, minY, maxY);
 
-            // Display the results
-            const statsElement = document.getElementById('statistics');
-            statsElement.innerHTML = `
-                <strong>Intermediate Step (t* = ${selectedStep}):</strong><br>
-                Mean = ${intermediateStats.mean.toFixed(2)}, Variance = ${intermediateStats.variance.toFixed(2)}<br><br>
-                <strong>Final Step:</strong><br>
-                Mean = ${finalStats.mean.toFixed(2)}, Variance = ${finalStats.variance.toFixed(2)}
-            `;
         }
-        
+
+
         function drawTrajectory(trajectory, steps, minY, maxY) {
             const margin = 50;
             const stepSizeX = (canvas.width - margin * 2) / steps;  // Adaptive horizontal step size
@@ -285,7 +278,6 @@
             }
             return color;
         }
-
     </script>
 </body>
 </html>
