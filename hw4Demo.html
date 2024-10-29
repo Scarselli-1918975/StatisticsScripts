@@ -21,8 +21,9 @@
         <label for="numAttackers">Number of Attackers (m):</label>
         <input id="numAttackers" type="number" value="20">
         <br>
-        <label for="lambda">Lambda (Expected Attacks per Time Unit):</label>
-        <input id="lambda" type="number" value="5" step="0.1">
+        <label for="probability">Probability of Penetration (p):</label>
+        <input id="probability" type="range" min="0" max="1" step="0.01" value="0.5" oninput="updateProbabilityDisplay()">
+        <span id="probabilityValue">0.5</span>
         <br>
         <label for="timeStep">Intermediate Distribution at Time Step (t*):</label>
         <input id="timeStep" type="number" value="15">
@@ -64,6 +65,7 @@
         function runSimulation() {
         const numServers = parseInt(document.getElementById('numServers').value);
         const numAttackers = parseInt(document.getElementById('numAttackers').value);
+        const probability = parseFloat(document.getElementById('probability').value);
         const timeStep = parseInt(document.getElementById('timeStep').value);
         
         const n = 1000; // Increased for finer time discretization, simulating continuous time
@@ -87,7 +89,7 @@
             for (let step = 1; step <= steps; step++) {
                 for (let subStep = 0; subStep < n; subStep++) {
                     // Continuous time with scaling limit approximation
-                    const increment = (Math.random() < 0.5 ? -1 : 1) * Math.sqrt(dt);
+                    const increment = (Math.random() < probability ? -1 : 1) * Math.sqrt(dt);
                     y += increment;
                 }
 
@@ -170,13 +172,13 @@
         const stepSizeY = (canvas.height - margin * 2) / (maxY - minY);
 
         let x = margin;
-        let y = canvas.height - margin;
+        let y = canvas.height / 2;
 
         ctx.beginPath();
         ctx.moveTo(x, y);
 
         for (let step = 0; step <= steps; step++) {
-            y = canvas.height - margin - (trajectory[step] * stepSizeY);
+            y = canvas.height / 2 - (trajectory[step] * stepSizeY);
             ctx.lineTo(x, y);
             ctx.stroke();
             x += stepSizeX;
