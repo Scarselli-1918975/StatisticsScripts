@@ -100,8 +100,8 @@
         }
 
         // Prepare distributions at intermediate and final steps
-        let finalDistribution = Array(Math.ceil(maxY) + 1).fill(0);
-        let intermediateDistribution = Array(Math.ceil(maxY) + 1).fill(0);
+        let finalDistribution = Array(Math.ceil(maxY) * 2 + 1).fill(0);
+        let intermediateDistribution = Array(Math.ceil(maxY) * 2 + 1).fill(0);
 
         for (let attacker = 0; attacker < numAttackers; attacker++) {
             let finalValue = Math.floor(trajectories[attacker][steps]);
@@ -206,8 +206,8 @@
 
             // Draw X-axis
             ctx.beginPath();
-            ctx.moveTo(margin, canvas.height - margin);  // X-axis at the bottom
-            ctx.lineTo(canvas.width, canvas.height - margin);
+            ctx.moveTo(margin, canvas.height / 2);  // X-axis at the center again
+            ctx.lineTo(canvas.width, canvas.height / 2);
             ctx.stroke();
 
             ctx.lineWidth = 1;
@@ -218,18 +218,18 @@
             for (let i = 0; i <= steps; i++) {
                 let x = margin + i * stepSizeX;
                 ctx.beginPath();
-                ctx.moveTo(x, canvas.height - margin - 5);
-                ctx.lineTo(x, canvas.height - margin + 5);
+                ctx.moveTo(x, canvas.height / 2 - 5);
+                ctx.lineTo(x, canvas.height / 2 + 5);
                 ctx.stroke();
                 ctx.fillStyle = "black";  // Set label color to black
-                ctx.fillText(i, x - 5, canvas.height - margin + 30);
+                ctx.fillText(i, x - 5, canvas.height / 2 + 30);
             }
 
             // Draw Y-axis ticks and labels (Penetrations)
             const stepSizeY = (canvas.height - margin * 2) / (maxY - minY);
             for (let i = minY; i <= maxY; i++) {
                 if (i % 5 === 0) {  // Only draw ticks and labels for multiples of 5 to avoid crowding
-                    let y = canvas.height - margin - (i * stepSizeY);
+                    let y = canvas.height / 2 - (i * stepSizeY);
                     ctx.beginPath();
                     ctx.moveTo(margin - 5, y);
                     ctx.lineTo(margin + 5, y);
