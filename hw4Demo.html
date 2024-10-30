@@ -102,19 +102,24 @@
         }
 
         // Prepare distributions at intermediate and final steps
-        let finalDistribution = Array(Math.ceil(maxY) * 2 + 1).fill(0);
-        let intermediateDistribution = Array(Math.ceil(maxY) * 2 + 1).fill(0);
+        let finalDistribution = Array(Math.ceil(maxY - minY) + 1).fill(0);
+        let intermediateDistribution = Array(Math.ceil(maxY - minY) + 1).fill(0);
 
+        // Offset index for accessing the distribution array
+        const offset = -Math.floor(minY);
+        
+        // Update final distribution
         for (let attacker = 0; attacker < numAttackers; attacker++) {
             let finalValue = Math.floor(trajectories[attacker][steps]);
-            finalDistribution[finalValue]++;
+            finalDistribution[finalValue + offset]++;  // Adjust by offset
         }
-
-        let selectedStep = Math.min(timeStep, steps);
+        
+        // Update intermediate distribution at selected step
         for (let attacker = 0; attacker < numAttackers; attacker++) {
             let intermediateValue = Math.floor(trajectories[attacker][selectedStep]);
-            intermediateDistribution[intermediateValue]++;
+            intermediateDistribution[intermediateValue + offset]++;  // Adjust by offset
         }
+
 
         // Draw axes and trajectories
         drawAxes(ctx, canvas, steps, minY, maxY);
