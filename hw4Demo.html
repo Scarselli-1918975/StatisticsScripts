@@ -110,14 +110,14 @@
         
         // Update final distribution
         for (let attacker = 0; attacker < numAttackers; attacker++) {
-            let finalValue = Math.floor(trajectories[attacker][steps]);
-            finalDistribution[finalValue + offset]++;  // Adjust by offset
+            let finalValue = trajectories[attacker][steps] + offset; // Adjust by offset
+            finalDistribution[finalValue]++;  
         }
         
         // Update intermediate distribution at selected step
         for (let attacker = 0; attacker < numAttackers; attacker++) {
-            let intermediateValue = Math.floor(trajectories[attacker][selectedStep]);
-            intermediateDistribution[intermediateValue + offset]++;  // Adjust by offset
+            let intermediateValue = trajectories[attacker][selectedStep] + offset;  // Adjust by offset
+            intermediateDistribution[intermediateValue]++; 
         }
 
 
