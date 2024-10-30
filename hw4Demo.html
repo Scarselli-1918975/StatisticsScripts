@@ -62,6 +62,10 @@
         const intermediateCanvas = document.getElementById('intermediateDistributionCanvas');
         const intermediateCtx = intermediateCanvas.getContext('2d');
 
+        function updateProbabilityDisplay() {
+            document.getElementById('probabilityValue').innerText = document.getElementById('probability').value;
+        }
+
         function runSimulation() {
         const numServers = parseInt(document.getElementById('numServers').value);
         const numAttackers = parseInt(document.getElementById('numAttackers').value);
@@ -110,29 +114,31 @@
         
         // Update final distribution
         for (let attacker = 0; attacker < numAttackers; attacker++) {
-            let finalValue = trajectories[attacker][steps] + offset; // Adjust by offset
+            let finalValue = Math.round(trajectories[attacker][steps]) + offset; // Adjust by offset
             finalDistribution[finalValue]++;  
         }
         
+        // Calculate intermediate distribution at selected step
+        let selectedStep = Math.min(timeStep, steps);
         // Update intermediate distribution at selected step
         for (let attacker = 0; attacker < numAttackers; attacker++) {
-            let intermediateValue = trajectories[attacker][selectedStep] + offset;  // Adjust by offset
+            let intermediateValue = Math.round(trajectories[attacker][selectedStep]) + offset;  // Adjust by offset
             intermediateDistribution[intermediateValue]++; 
         }
 
 
         // Draw axes and trajectories
-        drawAxes(ctx, canvas, steps, minY, maxY);
+        drawAxes(ctx, canvas, steps, Math.round(minY), Math.round(maxY));
 
         for (let attacker = 0; attacker < numAttackers; attacker++) {
             drawTrajectory(trajectories[attacker], steps, minY, maxY);
         }
 
-        drawHistogram(intermediateCtx, intermediateCanvas, intermediateDistribution, numServers, "red", selectedStep, minY, maxY);
-        drawHistogram(finalCtx, finalCanvas, finalDistribution, numServers, "blue", steps, minY, maxY);
+        drawHistogram(intermediateCtx, intermediateCanvas, intermediateDistribution, offset, "red", selectedStep, minY, maxY);
+        drawHistogram(finalCtx, finalCanvas, finalDistribution, offset, "blue", steps, minY, maxY);
 
-        const intermediateStats = computeMeanAndVariance(intermediateDistribution, numServers);
-        const finalStats = computeMeanAndVariance(finalDistribution, numServers);
+        const intermediateStats = computeMeanAndVariance(intermediateDistribution, offset);
+        const finalStats = computeMeanAndVariance(finalDistribution, offset);
 
         const statsElement = document.getElementById('statistics');
         statsElement.innerHTML = `
@@ -144,13 +150,13 @@
     }
 
         // Function to compute mean and variance from distribution
-        function computeMeanAndVariance(distribution, numServers) {
+        function computeMeanAndVariance(distribution, offset) {
             let total = 0;
             let mean = 0;
             let variance = 0;
 
             for (let i = 0; i < distribution.length; i++) {
-                const penetrationLevel = i - numServers;  // Convert index back to penetration level
+                const penetrationLevel = i - offset;  // Convert index back to penetration level
                 const frequency = distribution[i];
 
                 total += frequency;
@@ -160,7 +166,7 @@
             mean /= total;
 
             for (let i = 0; i < distribution.length; i++) {
-                const penetrationLevel = i - numServers;
+                const penetrationLevel = i - offset;
                 const frequency = distribution[i];
 
                 variance += frequency * Math.pow(penetrationLevel - mean, 2);
@@ -235,7 +241,7 @@
             // Draw Y-axis ticks and labels (Penetrations)
             const stepSizeY = (canvas.height - margin * 2) / (maxY - minY);
             for (let i = minY; i <= maxY; i++) {
-                if (i % 5 === 0) {  // Only draw ticks and labels for multiples of 5 to avoid crowding
+                if (i % 3 === 0) {  // Only draw ticks and labels for multiples of 3 to avoid crowding
                     let y = canvas.height / 2 - (i * stepSizeY);
                     ctx.beginPath();
                     ctx.moveTo(margin - 5, y);
@@ -256,7 +262,7 @@
             ctx.restore();
         }
 
-        function drawHistogram(ctx, canvas, distribution, numServers, color) {
+        function drawHistogram(ctx, canvas, distribution, offset, color) {
             const margin = 50;
 
             // Filter out non-zero penetration levels and scale down to fit the canvas
@@ -290,7 +296,7 @@
 
                 // Draw labels for the penetration level
                 ctx.fillStyle = "black";
-                ctx.fillText(index, margin - 35, y + barHeight / 2 + 5);  // Label on the left
+                ctx.fillText(index - offset, margin - 35, y + barHeight / 2 + 5);  // Label on the left
             }
 
             // Add X-axis labels for frequencies
