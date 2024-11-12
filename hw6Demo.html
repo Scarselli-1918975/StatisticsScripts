@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discrete Distribution Simulation with Interaction</title>
+    <title>Discrete Distribution Simulation</title>
     <style>
         body {
             background-color: #ffffff;
@@ -33,9 +33,6 @@
         }
         #controls button:hover {
             background-color: #e0e0e0;
-        }
-        #theoreticalStats {
-            font-size: 0.9em;
         }
         .input-group {
             display: flex;
@@ -90,7 +87,7 @@
         <canvas id="convergenceCanvas" width="500" height="300"></canvas>
     </div>
 
-    <p id="theoreticalStats">Theoretical Mean: <span id="theoreticalMean"></span>, Theoretical Variance: <span id="theoreticalVariance"></span></p>
+    <p>Theoretical Mean: <span id="theoreticalMean"></span>, Theoretical Variance: <span id="theoreticalVariance"></span></p>
     <p>Observed Mean: <span id="observedMean">0</span>, Observed Variance: <span id="observedVariance">0</span></p>
 
     <script>
@@ -135,7 +132,7 @@
 
         // Variables for observed data
         let sampleCount = 0;
-        let observedFrequency = [];
+        let observedFrequency = Array(values.length).fill(0); // Frequency of each observed value
         let observedMean = 0;
         let observedVariance = 0;
         let M2 = 0;
@@ -172,7 +169,7 @@
 
             // Draw theoretical distribution in blue
             distributionCtx.fillStyle = 'blue';
-            const barWidth = distributionCanvas.width / (2 * values.length);
+            const barWidth = distributionCanvas.width / (2 * values.length); // Each bar width
             for (let i = 0; i < values.length; i++) {
                 const height = probabilities[i] * distributionCanvas.height;
                 distributionCtx.fillRect(i * 2 * barWidth, distributionCanvas.height - height, barWidth, height);
@@ -207,7 +204,7 @@
             convergenceCtx.fillRect(x, convergenceCanvas.height - (observedVariance / 10) * convergenceCanvas.height, 2, 2);
         }
 
-        // Main simulation function to run each cycle
+        // Main simulation function
         function simulateStep() {
             const samplesPerCycle = parseInt(document.getElementById("sampleSize").value, 10);
             for (let i = 0; i < samplesPerCycle; i++) {
