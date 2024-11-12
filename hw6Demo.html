@@ -8,7 +8,7 @@
         body {
             background-color: #ffffff;
             color: #333;
-            font-family: Arial, sans-serif;
+            font-family: sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -37,6 +37,18 @@
         #theoreticalStats {
             font-size: 0.9em;
         }
+        .input-group {
+            display: flex;
+            flex-wrap: nowrap;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .input-group label {
+            margin-right: 10px;
+        }
+        .input-group input {
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
@@ -44,21 +56,22 @@
     <h1>Discrete Distribution Simulation with Interaction</h1>
 
     <div id="controls">
-        <label for="valuesInput">Values (comma-separated):</label>
-        <input type="text" id="valuesInput" value="1,2,3,4">
-        
-        <label for="probabilitiesInput">Probabilities (comma-separated):</label>
-        <input type="text" id="probabilitiesInput" value="0.1,0.2,0.4,0.3">
+        <div class="input-group">
+            <label for="valuesInput">Values (comma-separated):</label>
+            <input type="text" id="valuesInput" value="1,2,3,4">
+            
+            <label for="probabilitiesInput">Probabilities (comma-separated):</label>
+            <input type="text" id="probabilitiesInput" value="0.1,0.2,0.4,0.3">
+        </div>
 
-        <!-- New line for 'Samples per Cycle' and 'Update Interval' -->
-        <div>
+        <div class="input-group">
             <label for="sampleSize">Samples per Cycle:</label>
             <input type="number" id="sampleSize" value="100" min="1" max="1000">
         </div>
         
-        <div>
+        <div class="input-group">
             <label for="updateInterval">Update Interval (ms):</label>
-            <input type="number" id="updateInterval" value="100" min="10" max="1000">
+            <input type="number" id="updateInterval" value="200" min="10" max="1000">
         </div>
 
         <button onclick="startSimulation()">Start Simulation</button>
@@ -81,7 +94,7 @@
     <p>Observed Mean: <span id="observedMean">0</span>, Observed Variance: <span id="observedVariance">0</span></p>
 
     <script>
-        // Initialize variables for discrete values and probabilities
+        // Initialize global variables
         let values = [];
         let probabilities = [];
 
@@ -89,18 +102,18 @@
         function parseInputs() {
             values = document.getElementById("valuesInput").value.split(",").map(Number);
             probabilities = document.getElementById("probabilitiesInput").value.split(",").map(Number);
-            
-            // Check that probabilities sum to 1
+
+            // Ensure probabilities sum to 1, with tolerance
             const probSum = probabilities.reduce((acc, p) => acc + p, 0);
             if (Math.abs(probSum - 1) > 0.01) {
-                alert("Probabilities must sum to approximately 1.");
+                alert("Probabilities must sum to 1.");
                 return false;
             }
             calculateTheoreticalStats();
             return true;
         }
 
-        // Calculate theoretical mean and variance based on user input
+        // Calculate the theoretical mean and variance
         function calculateTheoreticalStats() {
             let theoreticalMean = 0;
             let theoreticalVariance = 0;
@@ -235,7 +248,6 @@
             document.getElementById("observedMean").textContent = "0";
             document.getElementById("observedVariance").textContent = "0";
         }
-
     </script>
 </body>
 </html>
