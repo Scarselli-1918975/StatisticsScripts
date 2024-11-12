@@ -8,7 +8,6 @@
         body {
             background-color: #ffffff;
             color: #333;
-            font-family: sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -55,25 +54,21 @@
     <div id="controls">
         <div class="input-group">
             <label for="valuesInput">Values (comma-separated):</label>
-            <input type="text" id="valuesInput" value="1,2,3,4">
+            <input type="text" id="valuesInput" value="1,2,3,4,5">
             
             <label for="probabilitiesInput">Probabilities (comma-separated):</label>
-            <input type="text" id="probabilitiesInput" value="0.1,0.2,0.4,0.3">
+            <input type="text" id="probabilitiesInput" value="0.1,0.2,0.3,0.2,0.2">
         </div>
 
         <div class="input-group">
             <label for="sampleSize">Samples per Cycle:</label>
             <input type="number" id="sampleSize" value="100" min="1" max="1000">
-        </div>
-        
-        <div class="input-group">
             <label for="updateInterval">Update Interval (ms):</label>
             <input type="number" id="updateInterval" value="200" min="10" max="1000">
+            <button onclick="startSimulation()">Start Simulation</button>
+            <button onclick="pauseSimulation()">Pause</button>
+            <button onclick="resetSimulation()">Reset</button>
         </div>
-
-        <button onclick="startSimulation()">Start Simulation</button>
-        <button onclick="pauseSimulation()">Pause</button>
-        <button onclick="resetSimulation()">Reset</button>
     </div>
 
     <!-- Graph Titles -->
@@ -225,10 +220,20 @@
 
         // Start the simulation
         let interval;
+        let tempFix = 0;
         function startSimulation() {
-            if (!parseInputs()) return;
-            if (interval) clearInterval(interval);
-            interval = setInterval(simulateStep, 200); // Update every 200ms
+            
+            if (!parseInputs()) return;  // If inputs are invalid, stop
+
+            if (interval) clearInterval(interval);  // Clear previous interval if any
+            interval = setInterval(simulateStep, parseInt(document.getElementById("updateInterval").value, 10));
+            
+            // Temporary fix, without this you should first reset and then start the simulation
+            if (tempFix == 0) {
+                tempFix++;
+                resetSimulation(); // Tried to fix this in other ways, but it complains and doesn't work.
+                startSimulation();
+            }
         }
 
         // Pause the simulation
@@ -244,10 +249,10 @@
             observedMean = 0;
             observedVariance = 0;
             M2 = 0;
-            drawDistribution();
-            drawConvergence();
-            document.getElementById("observedMean").textContent = "0";
-            document.getElementById("observedVariance").textContent = "0";
+            distributionCtx.clearRect(0, 0, distributionCanvas.width, distributionCanvas.height);
+            convergenceCtx.clearRect(0, 0, convergenceCanvas.width, convergenceCanvas.height);
+            document.getElementById("observedMean").textContent = observedMean.toFixed(2);
+            document.getElementById("observedVariance").textContent = observedVariance.toFixed(2);
         }
     </script>
 </body>
