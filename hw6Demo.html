@@ -3,19 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discrete Distribution Interactive Simulation</title>
+    <title>Discrete Distribution Simulation</title>
     <style>
         body {
-            background-color: #1c1c1c;
-            color: #e0e0e0;
-            font-family: Verdana, sans-serif;
+            background-color: #ffffff;
+            color: #333333;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 20px;
         }
         canvas {
-            border: 1px solid #444;
+            border: 1px solid #888888;
             margin-top: 20px;
         }
         #controlPanel {
@@ -27,14 +26,14 @@
             margin-right: 5px;
         }
         #controlPanel button {
-            background-color: #3a3a3a;
-            color: #e0e0e0;
+            background-color: #555555;
+            color: #ffffff;
             border: none;
             padding: 5px 10px;
             cursor: pointer;
         }
         #controlPanel button:hover {
-            background-color: #505050;
+            background-color: #777777;
         }
     </style>
 </head>
@@ -44,10 +43,10 @@
 
     <div id="controlPanel">
         <label for="samplesPerCycle">Samples per Cycle:</label>
-        <input type="number" id="samplesPerCycle" value="100" min="1" max="1000">
+        <input type="number" id="samplesPerCycle" value="500" min="1" max="1000">
         
         <label for="intervalDuration">Interval (ms):</label>
-        <input type="number" id="intervalDuration" value="100" min="10" max="1000">
+        <input type="number" id="intervalDuration" value="200" min="10" max="1000">
         
         <button onclick="beginSimulation()">Start</button>
         <button onclick="stopSimulation()">Pause</button>
@@ -61,9 +60,11 @@
     <p>Observed Mean: <span id="observedMean">0</span>, Observed Variance: <span id="observedVariance">0</span></p>
 
     <script>
-        const outcomes = [1, 2, 3, 4];
-        const outcomeProbs = [0.1, 0.2, 0.4, 0.3];
+        // Updated values and probabilities for a larger simulation scale
+        const outcomes = [10, 20, 30, 40];
+        const outcomeProbs = [0.15, 0.25, 0.35, 0.25];
         
+        // Calculate theoretical mean and variance based on updated values
         let trueMean = 0;
         let trueVariance = 0;
         for (let i = 0; i < outcomes.length; i++) {
@@ -112,14 +113,16 @@
         function plotProbabilityDistribution() {
             probCtx.clearRect(0, 0, probabilityCanvas.width, probabilityCanvas.height);
 
-            probCtx.fillStyle = 'lightblue';
+            // Draw theoretical distribution in blue
+            probCtx.fillStyle = 'blue';
             const barWidth = probabilityCanvas.width / (2 * outcomes.length);
             for (let i = 0; i < outcomes.length; i++) {
                 const barHeight = outcomeProbs[i] * probabilityCanvas.height;
                 probCtx.fillRect(i * 2 * barWidth, probabilityCanvas.height - barHeight, barWidth, barHeight);
             }
 
-            probCtx.fillStyle = 'lightcoral';
+            // Draw empirical distribution in red
+            probCtx.fillStyle = 'red';
             const totalObserved = totalSamples;
             for (let i = 0; i < outcomes.length; i++) {
                 const observedHeight = (observedCounts[i] / totalObserved) * probabilityCanvas.height;
@@ -130,6 +133,7 @@
         function plotConvergence() {
             convCtx.clearRect(0, 0, convergenceCanvas.width, convergenceCanvas.height);
 
+            // Plot theoretical mean and variance lines in blue
             convCtx.strokeStyle = 'blue';
             convCtx.beginPath();
             convCtx.moveTo(0, convergenceCanvas.height - trueMean / 10 * convergenceCanvas.height);
@@ -138,6 +142,7 @@
             convCtx.lineTo(convergenceCanvas.width, convergenceCanvas.height - trueVariance / 10 * convergenceCanvas.height);
             convCtx.stroke();
 
+            // Plot empirical points in red
             convCtx.fillStyle = 'red';
             const xPos = (totalSamples / 1000) * convergenceCanvas.width;
             convCtx.fillRect(xPos, convergenceCanvas.height - (currentMean / 10) * convergenceCanvas.height, 2, 2);
