@@ -21,9 +21,10 @@
         #controls {
             margin-bottom: 20px;
         }
+        /* Smaller, rounded buttons */
         #controls button {
             margin: 0 5px;
-            padding: 8px 16px;
+            padding: 6px 12px;
             border-radius: 5px;
             border: 1px solid #ccc;
             cursor: pointer;
@@ -31,6 +32,10 @@
         }
         #controls button:hover {
             background-color: #e0e0e0;
+        }
+        /* Smaller font for theoretical mean/variance */
+        #theoreticalStats {
+            font-size: 0.9em;
         }
     </style>
 </head>
@@ -50,7 +55,7 @@
         <button onclick="resetSimulation()">Reset</button>
     </div>
 
-    <!-- Graphs with Titles -->
+    <!-- Graph Titles -->
     <div>
         <h2>Empirical vs Theoretical Distribution</h2>
         <canvas id="distributionCanvas" width="500" height="300"></canvas>
@@ -61,11 +66,12 @@
         <canvas id="convergenceCanvas" width="500" height="300"></canvas>
     </div>
 
-    <p>Theoretical Mean: <span id="theoreticalMean"></span>, Theoretical Variance: <span id="theoreticalVariance"></span></p>
-    <p>Empirical Mean: <span id="empiricalMean">0</span>, Empirical Variance: <span id="empiricalVariance">0</span></p>
+    <!-- Display theoretical and observed stats -->
+    <p id="theoreticalStats">Theoretical Mean: <span id="theoreticalMean"></span>, Theoretical Variance: <span id="theoreticalVariance"></span></p>
+    <p>Observed Mean: <span id="observedMean">0</span>, Observed Variance: <span id="observedVariance">0</span></p>
 
     <script>
-        // Set up the initial distribution values and probabilities
+        // Define discrete values and associated probabilities
         const values = [1, 2, 3, 4];
         const probabilities = [0.1, 0.2, 0.4, 0.3];
         
@@ -81,20 +87,20 @@
         document.getElementById("theoreticalMean").textContent = theoreticalMean.toFixed(2);
         document.getElementById("theoreticalVariance").textContent = theoreticalVariance.toFixed(2);
 
-        // Initialize canvases
+        // Initialize canvases for drawing distributions and convergence graphs
         const distributionCanvas = document.getElementById('distributionCanvas');
         const convergenceCanvas = document.getElementById('convergenceCanvas');
         const distributionCtx = distributionCanvas.getContext('2d');
         const convergenceCtx = convergenceCanvas.getContext('2d');
 
-        // Variables for empirical data tracking
+        // Variables to track observed frequency, mean, and variance
         let sampleCount = 0;
-        let empiricalFrequency = Array(values.length).fill(0);
-        let empiricalMean = 0;
-        let empiricalVariance = 0;
+        let observedFrequency = Array(values.length).fill(0);
+        let observedMean = 0;
+        let observedVariance = 0;
         let M2 = 0; // for Welford's variance calculation
 
-        // Generate a sample from the discrete distribution
+        // Generate a sample based on cumulative probability
         function generateSample() {
             const random = Math.random();
             let cumulativeProbability = 0;
@@ -102,25 +108,25 @@
                 cumulativeProbability += probabilities[i];
                 if (random < cumulativeProbability) return values[i];
             }
-            return values[values.length - 1];
+            return values[values.length - 1]; // fallback due to precision
         }
 
-        // Update mean and variance using Welford's algorithm
+        // Update mean and variance using Welford's method
         function updateStatistics(newSample) {
             sampleCount++;
-            const delta = newSample - empiricalMean;
-            empiricalMean += delta / sampleCount;
-            M2 += delta * (newSample - empiricalMean);
-            empiricalVariance = M2 / sampleCount;
+            const delta = newSample - observedMean;
+            observedMean += delta / sampleCount;
+            M2 += delta * (newSample - observedMean);
+            observedVariance = M2 / sampleCount;
         }
 
-        // Update empirical frequency distribution
-        function updateEmpiricalDistribution(sample) {
+        // Track frequency of each value to draw empirical distribution
+        function updateObservedDistribution(sample) {
             const index = values.indexOf(sample);
-            if (index !== -1) empiricalFrequency[index]++;
+            if (index !== -1) observedFrequency[index]++;
         }
 
-        // Draw the distribution comparison
+        // Draw the distribution graph
         function drawDistribution() {
             distributionCtx.clearRect(0, 0, distributionCanvas.width, distributionCanvas.height);
 
@@ -132,20 +138,20 @@
                 distributionCtx.fillRect(i * 2 * barWidth, distributionCanvas.height - height, barWidth, height);
             }
 
-            // Draw empirical distribution in red
+            // Draw observed distribution in red
             distributionCtx.fillStyle = 'red';
             const totalSamples = sampleCount;
             for (let i = 0; i < values.length; i++) {
-                const height = (empiricalFrequency[i] / totalSamples) * distributionCanvas.height;
+                const height = (observedFrequency[i] / totalSamples) * distributionCanvas.height;
                 distributionCtx.fillRect(i * 2 * barWidth + barWidth, distributionCanvas.height - height, barWidth, height);
             }
         }
 
-        // Draw convergence graph for mean and variance
+        // Draw the convergence of mean and variance over time
         function drawConvergence() {
             convergenceCtx.clearRect(0, 0, convergenceCanvas.width, convergenceCanvas.height);
 
-            // Draw theoretical mean and variance lines in blue
+            // Draw theoretical mean and variance as blue lines
             convergenceCtx.strokeStyle = 'blue';
             convergenceCtx.beginPath();
             convergenceCtx.moveTo(0, convergenceCanvas.height - theoreticalMean / 10 * convergenceCanvas.height);
@@ -154,28 +160,28 @@
             convergenceCtx.lineTo(convergenceCanvas.width, convergenceCanvas.height - theoreticalVariance / 10 * convergenceCanvas.height);
             convergenceCtx.stroke();
 
-            // Plot empirical mean and variance points in red
+            // Plot observed mean and variance in red
             convergenceCtx.fillStyle = 'red';
             const x = (sampleCount / 1000) * convergenceCanvas.width;
-            convergenceCtx.fillRect(x, convergenceCanvas.height - (empiricalMean / 10) * convergenceCanvas.height, 2, 2);
-            convergenceCtx.fillRect(x, convergenceCanvas.height - (empiricalVariance / 10) * convergenceCanvas.height, 2, 2);
+            convergenceCtx.fillRect(x, convergenceCanvas.height - (observedMean / 10) * convergenceCanvas.height, 2, 2);
+            convergenceCtx.fillRect(x, convergenceCanvas.height - (observedVariance / 10) * convergenceCanvas.height, 2, 2);
         }
 
-        // Main simulation function
+        // Main simulation function to run each cycle
         function simulateStep() {
             const samplesPerCycle = parseInt(document.getElementById("sampleSize").value, 10);
             for (let i = 0; i < samplesPerCycle; i++) {
                 const sample = generateSample();
-                updateEmpiricalDistribution(sample);
+                updateObservedDistribution(sample);
                 updateStatistics(sample);
             }
             drawDistribution();
             drawConvergence();
-            document.getElementById("empiricalMean").textContent = empiricalMean.toFixed(2);
-            document.getElementById("empiricalVariance").textContent = empiricalVariance.toFixed(2);
+            document.getElementById("observedMean").textContent = observedMean.toFixed(2);
+            document.getElementById("observedVariance").textContent = observedVariance.toFixed(2);
         }
 
-        // Start simulation
+        // Start the simulation with a set interval
         let interval;
         function startSimulation() {
             const updateInterval = parseInt(document.getElementById("updateInterval").value, 10);
@@ -183,23 +189,23 @@
             interval = setInterval(simulateStep, updateInterval);
         }
 
-        // Pause simulation
+        // Pause the simulation
         function pauseSimulation() {
             clearInterval(interval);
         }
 
-        // Reset simulation
+        // Reset all variables and redraw graphs
         function resetSimulation() {
             clearInterval(interval);
             sampleCount = 0;
-            empiricalFrequency = Array(values.length).fill(0);
-            empiricalMean = 0;
-            empiricalVariance = 0;
+            observedFrequency = Array(values.length).fill(0);
+            observedMean = 0;
+            observedVariance = 0;
             M2 = 0;
             drawDistribution();
             drawConvergence();
-            document.getElementById("empiricalMean").textContent = "0";
-            document.getElementById("empiricalVariance").textContent = "0";
+            document.getElementById("observedMean").textContent = "0";
+            document.getElementById("observedVariance").textContent = "0";
         }
     </script>
 </body>
