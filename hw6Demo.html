@@ -159,8 +159,10 @@
 
         // Track frequency of each value
         function updateObservedDistribution(sample) {
-            const index = values.indexOf(sample);
-            if (index !== -1) observedFrequency[index]++;
+            const index = values.indexOf(sample);  // Get the index of the observed sample
+            if (index !== -1) { // If the sample is found in the values array
+                observedFrequency[index]++;  // Increment the frequency count for the sample
+            }
         }
 
         // Draw the empirical and theoretical distributions
@@ -188,13 +190,16 @@
         function drawConvergence() {
             convergenceCtx.clearRect(0, 0, convergenceCanvas.width, convergenceCanvas.height);
 
-            // Draw theoretical mean and variance as blue lines
+            // Draw theoretical mean and variance lines
             convergenceCtx.strokeStyle = 'blue';
             convergenceCtx.beginPath();
-            convergenceCtx.moveTo(0, convergenceCanvas.height - observedMean / 10 * convergenceCanvas.height);
-            convergenceCtx.lineTo(convergenceCanvas.width, convergenceCanvas.height - observedMean / 10 * convergenceCanvas.height);
-            convergenceCtx.moveTo(0, convergenceCanvas.height - observedVariance / 10 * convergenceCanvas.height);
-            convergenceCtx.lineTo(convergenceCanvas.width, convergenceCanvas.height - observedVariance / 10 * convergenceCanvas.height);
+            convergenceCtx.moveTo(0, convergenceCanvas.height - (observedMean / 10) * convergenceCanvas.height);
+            convergenceCtx.lineTo(convergenceCanvas.width, convergenceCanvas.height - (observedMean / 10) * convergenceCanvas.height);
+            convergenceCtx.stroke();
+
+            convergenceCtx.beginPath();
+            convergenceCtx.moveTo(0, convergenceCanvas.height - (observedVariance / 10) * convergenceCanvas.height);
+            convergenceCtx.lineTo(convergenceCanvas.width, convergenceCanvas.height - (observedVariance / 10) * convergenceCanvas.height);
             convergenceCtx.stroke();
 
             // Draw empirical data points
