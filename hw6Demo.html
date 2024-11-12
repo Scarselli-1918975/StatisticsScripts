@@ -43,7 +43,7 @@
 
     <div id="controlPanel">
         <label for="samplesPerCycle">Samples per Cycle:</label>
-        <input type="number" id="samplesPerCycle" value="500" min="1" max="1000">
+        <input type="number" id="samplesPerCycle" value="100" min="1" max="1000">
         
         <label for="intervalDuration">Interval (ms):</label>
         <input type="number" id="intervalDuration" value="200" min="10" max="1000">
@@ -132,22 +132,29 @@
 
         function plotConvergence() {
             convCtx.clearRect(0, 0, convergenceCanvas.width, convergenceCanvas.height);
-
-            // Plot theoretical mean and variance lines in blue
+        
+            // Draw lines for theoretical mean and variance in blue
             convCtx.strokeStyle = 'blue';
             convCtx.beginPath();
-            convCtx.moveTo(0, convergenceCanvas.height - trueMean / 10 * convergenceCanvas.height);
-            convCtx.lineTo(convergenceCanvas.width, convergenceCanvas.height - trueMean / 10 * convergenceCanvas.height);
-            convCtx.moveTo(0, convergenceCanvas.height - trueVariance / 10 * convergenceCanvas.height);
-            convCtx.lineTo(convergenceCanvas.width, convergenceCanvas.height - trueVariance / 10 * convergenceCanvas.height);
+            const meanLine = convergenceCanvas.height - (trueMean / Math.max(trueMean, trueVariance)) * convergenceCanvas.height;
+            convCtx.moveTo(0, meanLine);
+            convCtx.lineTo(convergenceCanvas.width, meanLine);
+        
+            const varianceLine = convergenceCanvas.height - (trueVariance / Math.max(trueMean, trueVariance)) * convergenceCanvas.height;
+            convCtx.moveTo(0, varianceLine);
+            convCtx.lineTo(convergenceCanvas.width, varianceLine);
             convCtx.stroke();
-
-            // Plot empirical points in red
+        
+            // Plot observed mean and variance in red
             convCtx.fillStyle = 'red';
-            const xPos = (totalSamples / 1000) * convergenceCanvas.width;
-            convCtx.fillRect(xPos, convergenceCanvas.height - (currentMean / 10) * convergenceCanvas.height, 2, 2);
-            convCtx.fillRect(xPos, convergenceCanvas.height - (currentVariance / 10) * convergenceCanvas.height, 2, 2);
+            const x = (totalSamples / 1000) * convergenceCanvas.width; // scale x-axis by sample count
+            const observedMeanY = convergenceCanvas.height - (currentMean / Math.max(trueMean, trueVariance)) * convergenceCanvas.height;
+            const observedVarianceY = convergenceCanvas.height - (currentVariance / Math.max(trueMean, trueVariance)) * convergenceCanvas.height;
+        
+            convCtx.fillRect(x, observedMeanY, 2, 2);     // Plot mean point
+            convCtx.fillRect(x, observedVarianceY, 2, 2); // Plot variance point
         }
+
 
         function runSimulationStep() {
             const cycles = parseInt(document.getElementById("samplesPerCycle").value, 10);
