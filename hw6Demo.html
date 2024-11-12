@@ -197,7 +197,7 @@
             convergenceCtx.lineTo(convergenceCanvas.width, convergenceCanvas.height - observedVariance / 10 * convergenceCanvas.height);
             convergenceCtx.stroke();
 
-            // Plot observed mean and variance in red
+            // Draw empirical data points
             convergenceCtx.fillStyle = 'red';
             const x = (sampleCount / 1000) * convergenceCanvas.width;
             convergenceCtx.fillRect(x, convergenceCanvas.height - (observedMean / 10) * convergenceCanvas.height, 2, 2);
@@ -223,7 +223,7 @@
         function startSimulation() {
             if (!parseInputs()) return;
             if (interval) clearInterval(interval);
-            interval = setInterval(simulateStep, 200);
+            interval = setInterval(simulateStep, 200); // Update every 200ms
         }
 
         // Pause the simulation
