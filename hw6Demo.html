@@ -20,9 +20,11 @@
         }
         #controls {
             margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
         }
         #controls button {
-            margin: 0 5px;
+            margin: 5px;
             padding: 6px 12px;
             border-radius: 5px;
             border: 1px solid #ccc;
@@ -47,13 +49,18 @@
         
         <label for="probabilitiesInput">Probabilities (comma-separated):</label>
         <input type="text" id="probabilitiesInput" value="0.1,0.2,0.4,0.3">
+
+        <!-- New line for 'Samples per Cycle' and 'Update Interval' -->
+        <div>
+            <label for="sampleSize">Samples per Cycle:</label>
+            <input type="number" id="sampleSize" value="100" min="1" max="1000">
+        </div>
         
-        <label for="sampleSize">Samples per Cycle:</label>
-        <input type="number" id="sampleSize" value="100" min="1" max="1000">
-        
-        <label for="updateInterval">Update Interval (ms):</label>
-        <input type="number" id="updateInterval" value="200" min="10" max="1000">
-        
+        <div>
+            <label for="updateInterval">Update Interval (ms):</label>
+            <input type="number" id="updateInterval" value="100" min="10" max="1000">
+        </div>
+
         <button onclick="startSimulation()">Start Simulation</button>
         <button onclick="pauseSimulation()">Pause</button>
         <button onclick="resetSimulation()">Reset</button>
@@ -174,10 +181,10 @@
             // Draw theoretical mean and variance as blue lines
             convergenceCtx.strokeStyle = 'blue';
             convergenceCtx.beginPath();
-            convergenceCtx.moveTo(0, convergenceCanvas.height - theoreticalMean / 10 * convergenceCanvas.height);
-            convergenceCtx.lineTo(convergenceCanvas.width, convergenceCanvas.height - theoreticalMean / 10 * convergenceCanvas.height);
-            convergenceCtx.moveTo(0, convergenceCanvas.height - theoreticalVariance / 10 * convergenceCanvas.height);
-            convergenceCtx.lineTo(convergenceCanvas.width, convergenceCanvas.height - theoreticalVariance / 10 * convergenceCanvas.height);
+            convergenceCtx.moveTo(0, convergenceCanvas.height - observedMean / 10 * convergenceCanvas.height);
+            convergenceCtx.lineTo(convergenceCanvas.width, convergenceCanvas.height - observedMean / 10 * convergenceCanvas.height);
+            convergenceCtx.moveTo(0, convergenceCanvas.height - observedVariance / 10 * convergenceCanvas.height);
+            convergenceCtx.lineTo(convergenceCanvas.width, convergenceCanvas.height - observedVariance / 10 * convergenceCanvas.height);
             convergenceCtx.stroke();
 
             // Plot observed mean and variance in red
@@ -220,4 +227,15 @@
             clearInterval(interval);
             sampleCount = 0;
             observedFrequency = Array(values.length).fill(0);
-            observedMean = 0
+            observedMean = 0;
+            observedVariance = 0;
+            M2 = 0;
+            drawDistribution();
+            drawConvergence();
+            document.getElementById("observedMean").textContent = "0";
+            document.getElementById("observedVariance").textContent = "0";
+        }
+
+    </script>
+</body>
+</html>
