@@ -21,7 +21,6 @@
         #controls {
             margin-bottom: 20px;
         }
-        /* Smaller, rounded buttons */
         #controls button {
             margin: 0 5px;
             padding: 6px 12px;
@@ -33,7 +32,6 @@
         #controls button:hover {
             background-color: #e0e0e0;
         }
-        /* Smaller font for theoretical mean/variance */
         #theoreticalStats {
             font-size: 0.9em;
         }
@@ -44,11 +42,17 @@
     <h1>Discrete Distribution Simulation with Interaction</h1>
 
     <div id="controls">
+        <label for="valuesInput">Values (comma-separated):</label>
+        <input type="text" id="valuesInput" value="1,2,3,4">
+        
+        <label for="probabilitiesInput">Probabilities (comma-separated):</label>
+        <input type="text" id="probabilitiesInput" value="0.1,0.2,0.4,0.3">
+        
         <label for="sampleSize">Samples per Cycle:</label>
         <input type="number" id="sampleSize" value="100" min="1" max="1000">
         
         <label for="updateInterval">Update Interval (ms):</label>
-        <input type="number" id="updateInterval" value="100" min="10" max="1000">
+        <input type="number" id="updateInterval" value="200" min="10" max="1000">
         
         <button onclick="startSimulation()">Start Simulation</button>
         <button onclick="pauseSimulation()">Pause</button>
@@ -66,39 +70,55 @@
         <canvas id="convergenceCanvas" width="500" height="300"></canvas>
     </div>
 
-    <!-- Display theoretical and observed stats -->
     <p id="theoreticalStats">Theoretical Mean: <span id="theoreticalMean"></span>, Theoretical Variance: <span id="theoreticalVariance"></span></p>
     <p>Observed Mean: <span id="observedMean">0</span>, Observed Variance: <span id="observedVariance">0</span></p>
 
     <script>
-        // Define discrete values and associated probabilities
-        const values = [1, 2, 3, 4];
-        const probabilities = [0.1, 0.2, 0.4, 0.3];
-        
-        // Calculate theoretical mean and variance
-        let theoreticalMean = 0;
-        let theoreticalVariance = 0;
-        for (let i = 0; i < values.length; i++) {
-            theoreticalMean += values[i] * probabilities[i];
-        }
-        for (let i = 0; i < values.length; i++) {
-            theoreticalVariance += probabilities[i] * Math.pow(values[i] - theoreticalMean, 2);
-        }
-        document.getElementById("theoreticalMean").textContent = theoreticalMean.toFixed(2);
-        document.getElementById("theoreticalVariance").textContent = theoreticalVariance.toFixed(2);
+        // Initialize variables for discrete values and probabilities
+        let values = [];
+        let probabilities = [];
 
-        // Initialize canvases for drawing distributions and convergence graphs
+        // Function to parse user input values and probabilities
+        function parseInputs() {
+            values = document.getElementById("valuesInput").value.split(",").map(Number);
+            probabilities = document.getElementById("probabilitiesInput").value.split(",").map(Number);
+            
+            // Check that probabilities sum to 1
+            const probSum = probabilities.reduce((acc, p) => acc + p, 0);
+            if (Math.abs(probSum - 1) > 0.01) {
+                alert("Probabilities must sum to approximately 1.");
+                return false;
+            }
+            calculateTheoreticalStats();
+            return true;
+        }
+
+        // Calculate theoretical mean and variance based on user input
+        function calculateTheoreticalStats() {
+            let theoreticalMean = 0;
+            let theoreticalVariance = 0;
+            for (let i = 0; i < values.length; i++) {
+                theoreticalMean += values[i] * probabilities[i];
+            }
+            for (let i = 0; i < values.length; i++) {
+                theoreticalVariance += probabilities[i] * Math.pow(values[i] - theoreticalMean, 2);
+            }
+            document.getElementById("theoreticalMean").textContent = theoreticalMean.toFixed(2);
+            document.getElementById("theoreticalVariance").textContent = theoreticalVariance.toFixed(2);
+        }
+
+        // Initialize canvas elements
         const distributionCanvas = document.getElementById('distributionCanvas');
         const convergenceCanvas = document.getElementById('convergenceCanvas');
         const distributionCtx = distributionCanvas.getContext('2d');
         const convergenceCtx = convergenceCanvas.getContext('2d');
 
-        // Variables to track observed frequency, mean, and variance
+        // Variables for observed data
         let sampleCount = 0;
-        let observedFrequency = Array(values.length).fill(0);
+        let observedFrequency = [];
         let observedMean = 0;
         let observedVariance = 0;
-        let M2 = 0; // for Welford's variance calculation
+        let M2 = 0;
 
         // Generate a sample based on cumulative probability
         function generateSample() {
@@ -120,13 +140,13 @@
             observedVariance = M2 / sampleCount;
         }
 
-        // Track frequency of each value to draw empirical distribution
+        // Track frequency of each value
         function updateObservedDistribution(sample) {
             const index = values.indexOf(sample);
             if (index !== -1) observedFrequency[index]++;
         }
 
-        // Draw the distribution graph
+        // Draw the empirical and theoretical distributions
         function drawDistribution() {
             distributionCtx.clearRect(0, 0, distributionCanvas.width, distributionCanvas.height);
 
@@ -147,7 +167,7 @@
             }
         }
 
-        // Draw the convergence of mean and variance over time
+        // Draw convergence of observed mean and variance
         function drawConvergence() {
             convergenceCtx.clearRect(0, 0, convergenceCanvas.width, convergenceCanvas.height);
 
@@ -181,9 +201,10 @@
             document.getElementById("observedVariance").textContent = observedVariance.toFixed(2);
         }
 
-        // Start the simulation with a set interval
+        // Start the simulation
         let interval;
         function startSimulation() {
+            if (!parseInputs()) return;
             const updateInterval = parseInt(document.getElementById("updateInterval").value, 10);
             if (interval) clearInterval(interval);
             interval = setInterval(simulateStep, updateInterval);
@@ -194,19 +215,9 @@
             clearInterval(interval);
         }
 
-        // Reset all variables and redraw graphs
+        // Reset the simulation
         function resetSimulation() {
             clearInterval(interval);
             sampleCount = 0;
             observedFrequency = Array(values.length).fill(0);
-            observedMean = 0;
-            observedVariance = 0;
-            M2 = 0;
-            drawDistribution();
-            drawConvergence();
-            document.getElementById("observedMean").textContent = "0";
-            document.getElementById("observedVariance").textContent = "0";
-        }
-    </script>
-</body>
-</html>
+            observedMean = 0
