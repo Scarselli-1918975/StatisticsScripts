@@ -75,7 +75,7 @@
     </div>
 
     <p>Theoretical Mean: <span id="theoreticalMean"></span>, Theoretical Variance: <span id="theoreticalVariance"></span></p>
-    <p>Observed Mean of Sampling Averages: <span id="observedMean">0</span>, Observed Variance: <span id="observedVariance">0</span></p>
+    <p>Observed Mean of Sampling Averages: <span id="observedMean">0</span>, Observed Variance of Sampling Averages: <span id="observedVariance">0</span></p>
 
     <script>
         // Initialize global variables
@@ -140,7 +140,6 @@
 
             const samplingAverages = [];
             let totalMean = 0;
-            let sampleVariances = [];
 
             for (let i = 0; i < m; i++) {
                 let sample = [];
@@ -157,21 +156,18 @@
                 const sampleMean = sampleSum / n;
                 samplingAverages.push(sampleMean);
                 totalMean += sampleMean;
-
-                // Calculate the sample variance
-                const sampleVariance = sample.reduce((acc, value) => acc + Math.pow(value - sampleMean, 2), 0) / (n - 1);
-                sampleVariances.push(sampleVariance);
             }
 
             // Compute mean of the sample means (Observed Mean)
             const meanOfSampleMeans = totalMean / m;
 
-            // Compute variance of the sample means (Observed Variance) by averaging the sample variances
-            const varianceOfSampleMeans = sampleVariances.reduce((acc, sampleVar) => acc + sampleVar, 0) / m;
+            // Compute variance of the sampling averages (Observed Variance of Sampling Averages)
+            const meanSquaredDifferences = samplingAverages.reduce((acc, sampleMean) => acc + Math.pow(sampleMean - meanOfSampleMeans, 2), 0);
+            const varianceOfSamplingAverages = meanSquaredDifferences / m;
 
             // Update the results
             document.getElementById("observedMean").textContent = meanOfSampleMeans.toFixed(2);
-            document.getElementById("observedVariance").textContent = varianceOfSampleMeans.toFixed(2);
+            document.getElementById("observedVariance").textContent = varianceOfSamplingAverages.toFixed(2);
 
             // Plot the distribution of sampling averages
             drawSamplingAveragesDistribution(samplingAverages, meanOfSampleMeans);
