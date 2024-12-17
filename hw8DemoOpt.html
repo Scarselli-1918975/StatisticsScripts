@@ -74,6 +74,10 @@
     <canvas id="numericChart" width="600" height="300"></canvas>
     <canvas id="encryptedChart" width="600" height="300"></canvas>
 
+    <h2>Frequency Distributions</h2>
+    <canvas id="numericFrequencyChart" width="600" height="300"></canvas>
+    <canvas id="encryptedFrequencyChart" width="600" height="300"></canvas>
+
     <script>
         // Convert a letter to its numeric representation (A=0, B=1, ..., Z=25)
         function letterToNumber(letter) {
@@ -107,16 +111,21 @@
             return entropy.toFixed(4);
         }
 
+        // Calculate frequency of each value in an array
+        function calculateFrequency(values, range) {
+            const frequency = Array(range).fill(0);
+            values.forEach(val => frequency[val]++);
+            return frequency;
+        }
+
         // Draw a bar chart for given data
-        function drawBarChart(canvasId, data, title) {
+        function drawBarChart(canvasId, data, title, labels = null, showAllLabels = false) {
             const canvas = document.getElementById(canvasId);
             const ctx = canvas.getContext("2d");
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             const maxValue = Math.max(...data);
             const barWidth = canvas.width / (data.length + 2);
-            const yAxisInterval = Math.ceil(maxValue / 5);
-            const xAxisInterval = Math.ceil(data.length / 10);
             const margin = 30;
 
             // Title
@@ -135,7 +144,7 @@
             ctx.textBaseline = "middle";
             for (let i = 0; i <= 5; i++) {
                 const yPosition = canvas.height - margin - (i * (canvas.height - 2 * margin) / 5);
-                const value = i * yAxisInterval;
+                const value = Math.ceil(maxValue * i / 5);
                 ctx.strokeStyle = "#ddd";
                 ctx.beginPath();
                 ctx.moveTo(margin, yPosition);
@@ -155,9 +164,9 @@
                 ctx.fillRect(x - barWidth / 3, y, barWidth / 2, barHeight);
 
                 // X-axis labels
-                if (index % xAxisInterval === 0 || index === data.length - 1) {
+                if (showAllLabels || (index % Math.ceil(data.length / 10) === 0) || index === data.length - 1) {
                     ctx.fillStyle = "#000";
-                    ctx.fillText(index, x, canvas.height - margin + 10);
+                    ctx.fillText(labels ? labels[index] : index, x, canvas.height - margin + 10);
                 }
             });
         }
@@ -199,8 +208,16 @@
             document.getElementById("encryptedOutput").innerText = outputEncrypted.trim().slice(0, -1);
             document.getElementById("entropyEncrypted").innerText = entropyEncrypted;
 
+            // Draw main charts
             drawBarChart("numericChart", numericRepresentation, "Numeric Representation of Letters");
             drawBarChart("encryptedChart", encryptedValues, "Encrypted Values (Modular Exponentiation)");
+
+            // Frequency Distributions
+            const numericFrequency = calculateFrequency(numericRepresentation, 26);
+            const encryptedFrequency = calculateFrequency(encryptedValues, modulus);
+
+            drawBarChart("numericFrequencyChart", numericFrequency, "Frequency Distribution: Numeric Representation", Array.from({ length: 26 }, (_, i) => i), true);
+            drawBarChart("encryptedFrequencyChart", encryptedFrequency, "Frequency Distribution: Encrypted Values", Array.from({ length: modulus }, (_, i) => i), true);
         }
     </script>
 </body>
